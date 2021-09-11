@@ -1,4 +1,4 @@
-# Setting up Master Slave Replication in PostgreSQL 12 using Dockers and external volumes:
+# Setting up Master Slave Replication in PostgreSQL using Dockers and external volumes:
 
 ## Understanding replication in PostgreSQL 12
 
@@ -69,7 +69,7 @@ Create a role dedicated to the replication -
 Create the user in master using whichever slave should connect for streaming the WALs. This user must have REPLICATION ROLE.
 
 ```
-CREATE USER replica REPLICATION LOGIN ENCRYPTED PASSWORD 'aqwe123@';
+CREATE USER replica REPLICATION LOGIN ENCRYPTED PASSWORD 'STRONG_PASSWORD_HERE';
 ```
 
 Now check the new user with 'du' query below, and you will see the replica user with replication privileges.
@@ -79,7 +79,7 @@ Now check the new user with 'du' query below, and you will see the replica user 
 ```
 
 ### Edit postgresql.conf -
-Note - the postgresql.conf would be present in the following location in case of external volume ``/mnt/EXTERNAL_VOLUME_NAME/postgres/postgresql.conf`` 
+Note - the postgresql.conf would be present in the following location in case of external volume ``/mnt/EXTERNAL_VOLUME_NAME/postgres/postgresql.conf``
 
 The following parameters on the master are considered as mandatory when setting up streaming replication.
 * **archive_mode** : Must be set to ON to enable archiving of WALs.
@@ -96,10 +96,10 @@ The above parameters can be set on the master using these commands followed by a
 wal_level = replica
 max_wal_senders = 3 # max number of walsender processes
 wal_keep_segments = 64 # in logfile segments, 16MB each; 0 disables
-listen_addresses = '*' 
+listen_addresses = '*'
 # or listen_address = ‘IP_OF_SERVER’
 archive_mode = on
-archive_command = 'cp %p /var/lib/postgresql/9.6/main/archive/%f'
+archive_command = 'cp %p /var/lib/postgresql/12/main/archive/%f'
 synchronous_commit = local
 synchronous_standby_names = 'pgslave001'
 ```
@@ -107,15 +107,15 @@ synchronous_standby_names = 'pgslave001'
 In the postgresql.conf file, the archive mode is enabled, so we need to create a new directory for the archive. Create a new archive directory, change the permission and change the owner to the postgres user.
 
 ```
-mkdir -p /var/lib/postgresql/9.6/main/archive/
-chmod 700 /var/lib/postgresql/9.6/main/archive/
-chown -R postgres:postgres /var/lib/postgresql/9.6/main/archive/
+mkdir -p /var/lib/postgresql/12/main/archive/
+chmod 700 /var/lib/postgresql/12/main/archive/
+chown -R postgres:postgres /var/lib/postgresql/12/main/archive/
 ```
 
-Create the archive dir in the external storage - 
+Create the archive dir in the external storage -
 Mount the location on docker configuration file (Docker has permission to read write and execute everything, we are running it through root)
 ```
-/mnt/external_volume:/var/lib/postgresql/9.6/main/archive/
+/mnt/external_volume:/var/lib/postgresql/12/main/archive/
 ```
 
 ### Edit pg_hba.conf -
@@ -143,7 +143,7 @@ netstat -plntu
 ```
 
 ## Slave -
-  
+
   YET TO BE UPDATED
 
 ## Storing the archive files -
@@ -157,7 +157,7 @@ netstat -plntu
 5. [How to Set Up Streaming Replication in PostgreSQL 12
 ](https://www.percona.com/blog/2019/10/11/how-to-set-up-streaming-replication-in-postgresql-12/)
 
-## Required Modifications 
+## Required Modifications
 1. Edit postgresql.conf section
 2. Add the process for docker configuration
 3. Take  master and slave sample IP
