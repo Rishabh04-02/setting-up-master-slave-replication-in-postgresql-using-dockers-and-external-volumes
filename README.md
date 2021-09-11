@@ -59,7 +59,7 @@ docker ps
 docker ps -a
 ```
 
-### Enter into Docker shel
+### Enter into Docker shell
 ```
 docker exec -it DOCKER_NAME /bin/bash
 ```
@@ -81,7 +81,7 @@ Now check the new user with 'du' query below, and you will see the replica user 
 ### Edit postgresql.conf -
 Note - the postgresql.conf would be present in the following location in case of external volume ``/mnt/EXTERNAL_VOLUME_NAME/postgres/postgresql.conf``
 
-The following parameters on the master are considered as mandatory when setting up streaming replication.
+The following parameters on the master are considered as mandatory when setting up streaming replication:
 * **archive_mode** : Must be set to ON to enable archiving of WALs.
 * **wal_level** : Must be at least set to hot_standby  until version 9.5 or replica  in the later versions.
 * **max_wal_senders** : Must be set to 3 if you are starting with one slave. For every slave, you may add 2 wal senders.
@@ -144,7 +144,30 @@ netstat -plntu
 
 ## Slave -
 
-  YET TO BE UPDATED
+First stop the postgresql service using the following command
+
+    systemctl stop postgresql
+
+then navigate to the postgresql directory
+
+    cd etc/postgresql/12/main/
+
+and then edit the postgresql.conf file
+
+    vim postgresql.conf
+
+
+The following parameters on the slave are considered as mandatory when setting up streaming replication, uncomment these parameters and add the following values to them:
+
+    listen_address = 10.0.15.11
+    # Note: The IP will be same as that you've already added the ip in the pg_hba.conf file in Master
+    wal_level = hot_standby
+    synchronous_commit = local
+    max_wal_senders = 2
+    # max_wal_senders is set to 2 because we are using 2 servers (master, slave). Similarly this value can be set to 3 if we use 3 servers.
+    wal_keep_segments = 10
+    synchronous_standby_names = 'pgslave001'
+    hot_standby = on
 
 ## Storing the archive files -
 * How to recreate database from the archive files?
