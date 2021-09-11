@@ -205,10 +205,10 @@ Explanation of each parameter:
 * **trigger_file** : if this file exists, the server will stop the replication and act as a master
 * **restore_command** : this command is only needed if you have used the archive_command on the master
 
-    standby_mode = 'on'
-    primary_conninfo = 'host=10.0.15.10 port=5432 user=replica password=STRONG_PASSWORD_HERE application_name=pgslave001'
-    restore_command = 'cp /var/lib/postgresql/12/main/archive/%f %p'
-    trigger_file = '/tmp/postgresql.trigger.5432'
+        standby_mode = 'on'
+        primary_conninfo = 'host=10.0.15.10 port=5432 user=replica password=STRONG_PASSWORD_HERE application_name=pgslave001'
+        restore_command = 'cp /var/lib/postgresql/12/main/archive/%f %p'
+        trigger_file = '/tmp/postgresql.trigger.5432'
 
 save the file and change it's permission
 
