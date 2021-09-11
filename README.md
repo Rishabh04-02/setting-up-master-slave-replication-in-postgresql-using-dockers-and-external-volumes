@@ -198,6 +198,13 @@ Wait for data transfer to complete and then create a `recovery.conf` file on the
 and add the following content to it
 Note: The `STRONG_PASSWORD_HERE` is same as you've used above in the **Master** section
 
+Explanation of each parameter:
+
+* **standby_mode=on** : specifies that the server must start as a standby server
+* **primary_conninfo** : the parameters to use to connect to the master
+* **trigger_file** : if this file exists, the server will stop the replication and act as a master
+* **restore_command** : this command is only needed if you have used the archive_command on the master
+
     standby_mode = 'on'
     primary_conninfo = 'host=10.0.15.10 port=5432 user=replica password=STRONG_PASSWORD_HERE application_name=pgslave001'
     restore_command = 'cp /var/lib/postgresql/12/main/archive/%f %p'
@@ -211,6 +218,40 @@ now restart postgresql and make sure the service is running
 
     systemctl start postgresql
     netstat -plntu
+
+## Testing
+One can check the streaming status on Master
+
+    postgres=# select * from pg_stat_activity  where usename = 'replica' ;
+    application_name |   state   | sync_priority | sync_state
+    -----------------+-----------+---------------+------------
+    pgslave001       | streaming |             1 | sync
+    (1 row)
+
+One can check for user `replica` on the Master
+
+    postgres=# select * from pg_stat_activity  where usename = 'replica' ;
+    -[ RECORD 1 ]----+------------------------------
+    datid            |
+    datname          |
+    pid              | 9134
+    usesysid         | 16384
+    usename          | replica
+    application_name | walreceiver
+    client_addr      | 172.17.0.3
+    client_hostname  |
+    client_port      | 45234
+    backend_start    | 2020-03-11 19:08:56.049113+00
+    xact_start       |
+    query_start      |
+    state_change     | 2020-03-11 19:08:56.071363+00
+    wait_event_type  | Activity
+    wait_event       | WalSenderMain
+    state            | active
+    backend_xid      |
+    backend_xmin     |
+    query            |
+    backend_type     | walsender
 
 ## Storing the archive files -
 * How to recreate database from the archive files?
