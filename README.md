@@ -169,6 +169,49 @@ The following parameters on the slave are considered as mandatory when setting u
     synchronous_standby_names = 'pgslave001'
     hot_standby = on
 
+## Starting the Data Streaming
+To start stream the data and to bring Slave at the same state as that of Master, we do the following steps:
+* Copy the data of Master to Slave
+* Create a recovery configuration file
+* And restart the postgresql service on Slave
+
+### Copying the data of Master to Slave
+Login to Slave and create a backup of the `main/` directory using the following commands
+
+    su - postgres
+    cd 12/
+    mv main main-backup
+    # Creating new main/ directory
+    mkdir main/
+    chmod 700 main/
+
+Then copy the `main/` directory of Master on Slave using the following commands
+
+    pg_basebackup -h 10.0.15.10 -U replica -D /var/lib/postgresql/12/main -P --xlog
+    Password:
+
+Wait for data transfer to complete and then create a `recovery.conf` file on the Slave
+
+    cd /var/lib/postgresql/9.6/main/
+    vim recovery.conf
+
+and add the following content to it
+Note: The `STRONG_PASSWORD_HERE` is same as you've used above in the **Master** section
+
+    standby_mode = 'on'
+    primary_conninfo = 'host=10.0.15.10 port=5432 user=replica password=STRONG_PASSWORD_HERE application_name=pgslave001'
+    restore_command = 'cp /var/lib/postgresql/12/main/archive/%f %p'
+    trigger_file = '/tmp/postgresql.trigger.5432'
+
+save the file and change it's permission
+
+    chmod 600 recovery.conf
+
+now restart postgresql and make sure the service is running
+
+    systemctl start postgresql
+    netstat -plntu
+
 ## Storing the archive files -
 * How to recreate database from the archive files?
 
